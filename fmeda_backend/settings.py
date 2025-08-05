@@ -38,8 +38,8 @@ MIDDLEWARE = [
 # CORS settings for production
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://Easy_Fmeda.vercel.app",  # Replace with your actual domain
-    "https://Easy_Fmeda.netlify.app",  # Replace with your actual domain
+    "https://easyfmeda.vercel.app",  # Replace with your actual domain
+    "https://easyfmeda.netlify.app",  # Replace with your actual domain
 ]
 
 CORS_ALLOW_CREDENTIALS = True
