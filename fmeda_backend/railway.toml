@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "gunicorn fmeda_backend.wsgi:application --bind 0.0.0.0:$PORT"
+healthcheckPath = "/projects/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[deploy.envs]
+PYTHON_VERSION = "3.11" 

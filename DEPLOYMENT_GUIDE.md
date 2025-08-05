@@ -3,69 +3,98 @@
 ## 📋 Prerequisites
 - GitHub account with your repository: `https://github.com/Dh-Yassine/Easy_Fmeda.git`
 - Netlify account (free)
-- Heroku/Railway/Render account (for backend)
+- Railway/Render account (free alternatives to Heroku)
 
 ---
 
 ## 🔧 Step 1: Deploy Backend (Django) First
 
-### Option A: Deploy to Heroku (Recommended)
+### Option A: Deploy to Railway (Recommended - Free Tier)
 
-1. **Create Heroku Account**
-   - Go to [heroku.com](https://heroku.com) and sign up
+1. **Create Railway Account**
+   - Go to [railway.app](https://railway.app) and sign up with GitHub
+   - Railway offers a generous free tier with $5 credit monthly
 
-2. **Install Heroku CLI**
-   ```bash
-   # Windows (using PowerShell)
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   iwr -useb get.scoop.sh | iex
-   scoop install heroku
-   ```
+2. **Create New Project**
+   - Click "New Project"
+   - Select "Deploy from GitHub repo"
+   - Choose your repository: `Dh-Yassine/Easy_Fmeda`
 
-3. **Login to Heroku**
-   ```bash
-   heroku login
-   ```
+3. **Configure Backend Deployment**
+   - Set **Root Directory** to: `fmeda_backend`
+   - Railway will automatically detect it's a Django app
 
-4. **Create Heroku App**
-   ```bash
-   cd fmeda_backend
-   heroku create your-fmeda-backend
-   ```
+4. **Set Environment Variables**
+   - Go to your project → "Variables" tab
+   - Add these variables:
+     ```
+     SECRET_KEY=your-secret-key-here
+     DEBUG=False
+     ALLOWED_HOSTS=your-app-name.railway.app
+     ```
 
-5. **Set Environment Variables**
-   ```bash
-   heroku config:set SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
-   heroku config:set DEBUG="False"
-   heroku config:set ALLOWED_HOSTS="your-fmeda-backend.herokuapp.com"
-   ```
+5. **Deploy**
+   - Railway will automatically deploy when you push to GitHub
+   - Or click "Deploy" to deploy immediately
 
-6. **Deploy Backend**
-   ```bash
-   git add .
-   git commit -m "Deploy to Heroku"
-   git push heroku main
-   ```
-
-7. **Run Migrations**
-   ```bash
-   heroku run python manage.py migrate
-   ```
-
-8. **Get Your Backend URL**
-   - Your backend URL will be: `https://your-fmeda-backend.herokuapp.com`
+6. **Get Your Backend URL**
+   - Your backend URL will be: `https://your-app-name.railway.app`
    - Save this URL for the frontend deployment
 
-### Option B: Deploy to Railway
+### Option B: Deploy to Render (Free Tier)
 
-1. Go to [railway.app](https://railway.app)
-2. Connect your GitHub account
-3. Create new project from GitHub repo
-4. Set root directory to: `fmeda_backend`
-5. Add environment variables:
-   - `SECRET_KEY`: Generate a random key
-   - `DEBUG`: `False`
-   - `ALLOWED_HOSTS`: `your-app-name.railway.app`
+1. **Create Render Account**
+   - Go to [render.com](https://render.com) and sign up
+   - Render offers a free tier with some limitations
+
+2. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository: `Dh-Yassine/Easy_Fmeda`
+
+3. **Configure Service**
+   - **Name**: `fmeda-backend`
+   - **Root Directory**: `fmeda_backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn fmeda_backend.wsgi:application`
+
+4. **Set Environment Variables**
+   - Go to "Environment" tab
+   - Add variables:
+     ```
+     SECRET_KEY=your-secret-key-here
+     DEBUG=False
+     ALLOWED_HOSTS=your-app-name.onrender.com
+     ```
+
+5. **Deploy**
+   - Click "Create Web Service"
+   - Render will build and deploy automatically
+
+### Option C: Deploy to Fly.io (Free Tier)
+
+1. **Create Fly.io Account**
+   - Go to [fly.io](https://fly.io) and sign up
+   - Fly.io offers a generous free tier
+
+2. **Install Fly CLI**
+   ```bash
+   # Windows (using PowerShell)
+   iwr -useb https://fly.io/install.ps1 | iex
+   ```
+
+3. **Login and Deploy**
+   ```bash
+   fly auth login
+   cd fmeda_backend
+   fly launch
+   ```
+
+4. **Set Environment Variables**
+   ```bash
+   fly secrets set SECRET_KEY="your-secret-key-here"
+   fly secrets set DEBUG="False"
+   fly secrets set ALLOWED_HOSTS="your-app-name.fly.dev"
+   ```
 
 ---
 
@@ -90,7 +119,7 @@
 4. **Set Environment Variables**
    - Click "Show advanced" → "New variable"
    - **Key**: `REACT_APP_API_BASE_URL`
-   - **Value**: `https://your-backend-url.herokuapp.com` (from Step 1)
+   - **Value**: `https://your-backend-url.railway.app` (from Step 1)
 
 5. **Deploy**
    - Click "Deploy site"
@@ -135,7 +164,7 @@ If you get CORS errors, update the backend CORS settings:
    ```bash
    git add .
    git commit -m "Update CORS settings"
-   git push heroku main
+   git push origin master
    ```
 
 ---
@@ -143,7 +172,7 @@ If you get CORS errors, update the backend CORS settings:
 ## ✅ Step 4: Test Your Deployment
 
 1. **Test Backend**
-   - Visit: `https://your-backend-url.herokuapp.com/projects/`
+   - Visit: `https://your-backend-url.railway.app/projects/`
    - Should show Django REST API interface
 
 2. **Test Frontend**
@@ -182,11 +211,14 @@ If you get CORS errors, update the backend CORS settings:
 ### Debug Commands:
 
 ```bash
-# Check Heroku logs
-heroku logs --tail
+# Check Railway logs
+railway logs
 
-# Check environment variables
-heroku config
+# Check Render logs
+# Go to your service dashboard → "Logs" tab
+
+# Check Fly.io logs
+fly logs
 
 # Test backend locally
 cd fmeda_backend
@@ -204,9 +236,20 @@ npm start
 After successful deployment:
 
 - **Frontend**: `https://easyfmeda.netlify.app`
-- **Backend**: `https://your-backend-name.herokuapp.com`
+- **Backend**: `https://your-backend-name.railway.app` (or .onrender.com, .fly.dev)
 
 Your FMEDA Web Application is now live and ready to use! 🚀
+
+---
+
+## 💰 Free Tier Comparison
+
+| Platform | Free Tier | Pros | Cons |
+|----------|-----------|------|------|
+| **Railway** | $5/month credit | Easy setup, auto-deploy | Limited to $5 credit |
+| **Render** | Free web services | Simple deployment | Sleeps after 15min inactivity |
+| **Fly.io** | 3 shared VMs free | Fast, global | More complex setup |
+| **Netlify** | Free hosting | Great for frontend | Backend not supported |
 
 ---
 
