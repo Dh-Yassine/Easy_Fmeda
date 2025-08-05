@@ -1,0 +1,59 @@
+.App {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #0a0e27 0%, #1a1d3a 30%, #2d1b69 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px; /* Width of sidebar */
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    margin-top: 60px; /* For mobile, sidebar becomes top nav */
+  }
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Ensure all containers respect the layout */
+.container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 2rem 4rem 4rem;
+  box-sizing: border-box;
+}
+
+/* Fix backdrop positioning */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 250px; /* Account for sidebar */
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .backdrop {
+    left: 0;
+  }
+}
