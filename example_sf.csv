@@ -1,0 +1,3 @@
+id,description,target_integrity_level
+SF1,Main power supply,ASIL B
+SF2,Overvoltage protection,ASIL C

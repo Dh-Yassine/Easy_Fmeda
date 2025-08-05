@@ -1,0 +1,6 @@
+id,type,failure_rate,related_sf_ids
+1,Resistor,100,SF1
+2,Capacitor,150,SF1
+3,IC,500,SF2
+4,Diodes,200,SF1
+5,Other,50,SF2

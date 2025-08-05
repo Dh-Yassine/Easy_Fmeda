@@ -1,0 +1,11 @@
+section,name,lifetime,id,description,target_integrity_level,type,failure_rate,related_sf_ids,component_id,Failure_rate_total,system_level_effect,is_SPF,SPF_safety_mechanism,SPF_diagnostic_coverage,is_MPF,MPF_safety_mechanism,MPF_diagnostic_coverage
+project,FMEDA Project1,789.0,,,,,,,,,,,,,,,
+sf,,,25,lol,ASIL B,,,,,,,,,,,,
+sf,,,26,lol,ASIL A,,,,,,,,,,,,
+component,,,45,,,mp,12.0,25,,,,,,,,,
+component,,,46,,,pp,23.0,"25,26",,,,,,,,,
+component,,,47,,,mm,21.0,26,,,,,,,,,
+fm,,,,45555555555,,,,,45,2.0,12,1.0,12,20.0,1.0,20,13.0
+fm,,,,pp,,,,,46,12.0,20,1.0,2,20.0,1.0,12,21.0
+fm,,,,mp,,,,,47,12.0,2,1.0,12,20.0,1.0,1,12.0
+fm,,,,ki,,,,,47,12.0,1,1.0,12,20.0,1.0,10,13.0
