@@ -8,5 +8,4 @@ healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 
 [deploy.envs]
-PYTHON_VERSION = "3.11"
-PIP_USER = "true" 
+PYTHON_VERSION = "3.11" 
