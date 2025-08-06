@@ -1,45 +1,11 @@
 import axios from 'axios';
 
-// Use environment variable for API base URL, fallback to localhost for development
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
-
-// Create axios instance with default configuration
-const apiClient = axios.create({
-  baseURL: API_BASE,
-  timeout: 30000, // 30 seconds timeout
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request interceptor for logging
-apiClient.interceptors.request.use(
-  (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
-    return config;
-  },
-  (error) => {
-    console.error('API Request Error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => {
-    console.log(`API Response: ${response.status} ${response.config.url}`);
-    return response;
-  },
-  (error) => {
-    console.error('API Response Error:', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
+const API_BASE = 'http://localhost:8000';
 
 // Projects API
 export const getProjects = async () => {
   try {
-    const response = await apiClient.get(`/projects/`);
+    const response = await axios.get(`${API_BASE}/projects/`);
     return response.data;
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -49,7 +15,7 @@ export const getProjects = async () => {
 
 export const createProject = async (projectData) => {
   try {
-    const response = await apiClient.post(`/projects/`, projectData);
+    const response = await axios.post(`${API_BASE}/projects/`, projectData);
     return response.data;
   } catch (error) {
     console.error('Error creating project:', error);
@@ -59,7 +25,7 @@ export const createProject = async (projectData) => {
 
 export const updateProject = async (projectId, projectData) => {
   try {
-    const response = await apiClient.patch(`/projects/${projectId}/`, projectData);
+    const response = await axios.patch(`${API_BASE}/projects/${projectId}/`, projectData);
     return response.data;
   } catch (error) {
     console.error('Error updating project:', error);
@@ -69,7 +35,7 @@ export const updateProject = async (projectId, projectData) => {
 
 export const deleteProject = async (projectId) => {
   try {
-    const response = await apiClient.delete(`/projects/${projectId}/`);
+    const response = await axios.delete(`${API_BASE}/projects/${projectId}/`);
     return response.data;
   } catch (error) {
     console.error('Error deleting project:', error);
@@ -80,7 +46,7 @@ export const deleteProject = async (projectId) => {
 // Safety Functions API
 export const getSafetyFunctions = async (projectId) => {
   try {
-    const response = await apiClient.get(`/safety-functions/?project=${projectId}`);
+    const response = await axios.get(`${API_BASE}/safety-functions/?project=${projectId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching safety functions:', error);
@@ -90,7 +56,7 @@ export const getSafetyFunctions = async (projectId) => {
 
 export const createSafetyFunction = async (safetyFunctionData) => {
   try {
-    const response = await apiClient.post(`/safety-functions/`, safetyFunctionData);
+    const response = await axios.post(`${API_BASE}/safety-functions/`, safetyFunctionData);
     return response.data;
   } catch (error) {
     console.error('Error creating safety function:', error);
@@ -100,7 +66,7 @@ export const createSafetyFunction = async (safetyFunctionData) => {
 
 export const updateSafetyFunction = async (safetyFunctionId, safetyFunctionData) => {
   try {
-    const response = await apiClient.patch(`/safety-functions/${safetyFunctionId}/`, safetyFunctionData);
+    const response = await axios.patch(`${API_BASE}/safety-functions/${safetyFunctionId}/`, safetyFunctionData);
     return response.data;
   } catch (error) {
     console.error('Error updating safety function:', error);
@@ -110,7 +76,7 @@ export const updateSafetyFunction = async (safetyFunctionId, safetyFunctionData)
 
 export const deleteSafetyFunction = async (safetyFunctionId) => {
   try {
-    const response = await apiClient.delete(`/safety-functions/${safetyFunctionId}/`);
+    const response = await axios.delete(`${API_BASE}/safety-functions/${safetyFunctionId}/`);
     return response.data;
   } catch (error) {
     console.error('Error deleting safety function:', error);
@@ -121,7 +87,7 @@ export const deleteSafetyFunction = async (safetyFunctionId) => {
 // Components API
 export const getComponents = async (projectId) => {
   try {
-    const response = await apiClient.get(`/components/?project=${projectId}`);
+    const response = await axios.get(`${API_BASE}/components/?project=${projectId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching components:', error);
@@ -131,7 +97,7 @@ export const getComponents = async (projectId) => {
 
 export const createComponent = async (componentData) => {
   try {
-    const response = await apiClient.post(`/components/`, componentData);
+    const response = await axios.post(`${API_BASE}/components/`, componentData);
     return response.data;
   } catch (error) {
     console.error('Error creating component:', error);
@@ -141,7 +107,7 @@ export const createComponent = async (componentData) => {
 
 export const updateComponent = async (componentId, componentData) => {
   try {
-    const response = await apiClient.patch(`/components/${componentId}/`, componentData);
+    const response = await axios.patch(`${API_BASE}/components/${componentId}/`, componentData);
     return response.data;
   } catch (error) {
     console.error('Error updating component:', error);
@@ -151,7 +117,7 @@ export const updateComponent = async (componentId, componentData) => {
 
 export const deleteComponent = async (componentId) => {
   try {
-    const response = await apiClient.delete(`/components/${componentId}/`);
+    const response = await axios.delete(`${API_BASE}/components/${componentId}/`);
     return response.data;
   } catch (error) {
     console.error('Error deleting component:', error);
@@ -162,7 +128,7 @@ export const deleteComponent = async (componentId) => {
 // Failure Modes API
 export const getFailureModes = async (componentId) => {
   try {
-    const response = await apiClient.get(`/failure-modes/by-component/${componentId}/`);
+    const response = await axios.get(`${API_BASE}/failure-modes/by-component/${componentId}/`);
     return response.data;
   } catch (error) {
     console.error('Error fetching failure modes:', error);
@@ -172,7 +138,7 @@ export const getFailureModes = async (componentId) => {
 
 export const createFailureMode = async (failureModeData) => {
   try {
-    const response = await apiClient.post(`/failure-modes/`, failureModeData);
+    const response = await axios.post(`${API_BASE}/failure-modes/`, failureModeData);
     return response.data;
   } catch (error) {
     console.error('Error creating failure mode:', error);
@@ -182,7 +148,7 @@ export const createFailureMode = async (failureModeData) => {
 
 export const updateFailureMode = async (failureModeId, failureModeData) => {
   try {
-    const response = await apiClient.patch(`/failure-modes/${failureModeId}/`, failureModeData);
+    const response = await axios.patch(`${API_BASE}/failure-modes/${failureModeId}/`, failureModeData);
     return response.data;
   } catch (error) {
     console.error('Error updating failure mode:', error);
@@ -192,7 +158,7 @@ export const updateFailureMode = async (failureModeId, failureModeData) => {
 
 export const deleteFailureMode = async (failureModeId) => {
   try {
-    const response = await apiClient.delete(`/failure-modes/${failureModeId}/`);
+    const response = await axios.delete(`${API_BASE}/failure-modes/${failureModeId}/`);
     return response.data;
   } catch (error) {
     console.error('Error deleting failure mode:', error);
@@ -203,7 +169,7 @@ export const deleteFailureMode = async (failureModeId) => {
 // FMEDA Analysis API
 export const calculateFMEDA = async (projectId) => {
   try {
-    const response = await apiClient.post(`/fmeda/calculate/`, {
+    const response = await axios.post(`${API_BASE}/fmeda/calculate/`, {
       project: projectId
     });
     return response.data;
@@ -215,7 +181,7 @@ export const calculateFMEDA = async (projectId) => {
 
 export const getProjectResults = async (projectId) => {
   try {
-    const response = await apiClient.get(`/fmeda/results/${projectId}/`);
+    const response = await axios.get(`${API_BASE}/fmeda/results/${projectId}/`);
     return response.data;
   } catch (error) {
     console.error('Error getting project results:', error);
@@ -226,7 +192,7 @@ export const getProjectResults = async (projectId) => {
 // CSV Import/Export API
 export const importProject = async (formData) => {
   try {
-    const response = await apiClient.post(`/projects/import-csv/`, formData, {
+    const response = await axios.post(`${API_BASE}/projects/import-csv/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -239,23 +205,23 @@ export const importProject = async (formData) => {
 };
 
 // Export project to CSV
-export const exportProject = async (projectId) => {
+export const exportProject = async (project) => {
   try {
-    const response = await apiClient.get(`/projects/${projectId}/export-csv/`, {
+    const response = await axios.get(`${API_BASE}/projects/${project.id}/export-csv/`, {
       responseType: 'blob'
     });
-    
     // Create and download the file
     const blob = new Blob([response.data], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
+    // Use project.name if available, fallback to id
+    const safeName = (project.name || `project_${project.id}`).replace(/[^a-zA-Z0-9_-]/g, '_');
     a.href = url;
-    a.download = `fmeda_project_${projectId}.csv`;
+    a.download = `${safeName}.csv`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
-    
     return response.data;
   } catch (error) {
     throw error;
@@ -265,7 +231,7 @@ export const exportProject = async (projectId) => {
 // Clear all data
 export const clearAllData = async () => {
   try {
-    const response = await apiClient.get(`/projects/clear-all/`);
+    const response = await axios.get(`${API_BASE}/projects/clear-all/`);
     return response.data;
   } catch (error) {
     throw error;

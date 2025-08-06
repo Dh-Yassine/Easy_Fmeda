@@ -57,3 +57,27 @@ body {
     left: 0;
   }
 }
+
+/* Ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  background-color: rgba(255,255,255,0.4);
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Ensure all main buttons are position: relative for ripple */
+.saveBtn, .actionBtn, .continueBtn, .importBtn, .cancelBtn, .clearBtn, .exportBtn, .stepBtn, .editBtn, .removeBtn, .fmBtn {
+  position: relative;
+  overflow: hidden;
+}

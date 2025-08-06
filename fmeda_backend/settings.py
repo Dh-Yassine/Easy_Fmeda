@@ -1,16 +1,9 @@
 from pathlib import Path
-import os
 import secrets
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-1234567890abcdefghijklmnopqrstuvwxyz!@#$%^&*(-_=+)')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+SECRET_KEY = 'django-insecure-1234567890abcdefghijklmnopqrstuvwxyz!@#$%^&*(-_=+)'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -23,7 +16,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'fmeda',  # your app
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',  # ✅ Required
@@ -34,17 +26,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',     # ✅ Required
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# CORS settings for production
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://easyfmeda.vercel.app",  # Replace with your actual domain
-    "https://easyfmeda.netlify.app",  # Replace with your actual domain
 ]
 
-CORS_ALLOW_CREDENTIALS = True
 
-# Database configuration
+DEBUG = True
+ALLOWED_HOSTS = []
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -52,22 +41,7 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL in production if available
-if os.environ.get('DATABASE_URL'):
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.parse(os.environ.get('DATABASE_URL'))
-else:
-    # For Railway deployment
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('PGDATABASE', 'railway'),
-        'USER': os.environ.get('PGUSER', 'postgres'),
-        'PASSWORD': os.environ.get('PGPASSWORD', ''),
-        'HOST': os.environ.get('PGHOST', 'localhost'),
-        'PORT': os.environ.get('PGPORT', '5432'),
-    }
-
-ROOT_URLCONF = 'fmeda_backend.urls'
+ROOT_URLCONF = 'fmeda_backend.urls' 
 
 TEMPLATES = [
     {
@@ -85,47 +59,6 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'fmeda_backend.wsgi.application'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' 
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Security settings for production
-if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_REDIRECT_EXEMPT = []
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True 
+STATIC_URL = '/static/' 

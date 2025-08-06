@@ -73,7 +73,7 @@ export default function Results({ currentProject }) {
     setError("");
 
     try {
-      await exportProject(currentProject.id);
+      await exportProject(currentProject);
     } catch (error) {
       console.error("Failed to export project:", error);
       setError("Failed to export project. Please try again.");

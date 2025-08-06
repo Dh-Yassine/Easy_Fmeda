@@ -7,6 +7,8 @@ import {
   clearAllData
 } from "../../api/fmedaApi";
 import styles from "./Home.module.css";
+import RippleButton from "../../components/RippleButton";
+import { showToast } from "../../App";
 
 export default function Home({ currentProject, setCurrentProject, clearProjectData }) {
   const [newProjectName, setNewProjectName] = useState("");
@@ -47,6 +49,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
     } catch (error) {
       console.error("Failed to create project:", error);
       setError("Failed to create project. Please try again.");
+      showToast("error", "Failed to create project. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -78,6 +81,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
       } catch (error) {
         console.error("Failed to import project:", error);
         setError("Failed to import project. Please check your CSV file format.");
+        showToast("error", "Failed to import project. Please check your CSV file format.");
       } finally {
         setIsImporting(false);
       }
@@ -98,10 +102,11 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
     setError("");
 
     try {
-      await exportProject(currentProject.id);
+      await exportProject(currentProject);
     } catch (error) {
       console.error("Failed to export project:", error);
       setError("Failed to export project. Please try again.");
+      showToast("error", "Failed to export project. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -122,6 +127,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
       } catch (error) {
         console.error("Error clearing data:", error);
         alert("Error clearing data. Please try again.");
+        showToast("error", "Error clearing data. Please try again.");
       }
     }
   };
@@ -145,7 +151,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
           </div>
 
           <div className={styles.projectActions}>
-            <button 
+            <RippleButton 
               className={styles.actionBtn}
               onClick={handleExportProject}
               disabled={isExporting}
@@ -156,23 +162,23 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
               <span>
                 {isExporting ? "Exporting..." : "Export Project"}
               </span>
-            </button>
+            </RippleButton>
             
-            <button 
+            <RippleButton 
               className={styles.actionBtn}
               onClick={handleHelp}
             >
               <span className={styles.btnIcon}>❓</span>
               <span>Help</span>
-            </button>
+            </RippleButton>
             
-            <button 
+            <RippleButton 
               className={styles.clearBtn}
               onClick={handleClearAllData}
             >
               <span className={styles.btnIcon}>🗑️</span>
               <span>Clear All Data</span>
-            </button>
+            </RippleButton>
           </div>
 
           <div className={styles.workflowGuide}>
@@ -181,52 +187,52 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
               <div className={styles.step}>
                 <span className={styles.stepNumber}>1</span>
                 <span className={styles.stepText}>Set System Lifetime</span>
-                <button 
+                <RippleButton 
                   className={styles.stepBtn}
                   onClick={() => navigate("/assumptions")}
                 >
                   Go to Assumptions
-                </button>
+                </RippleButton>
               </div>
               <div className={styles.step}>
                 <span className={styles.stepNumber}>2</span>
                 <span className={styles.stepText}>Define Safety Functions</span>
-                <button 
+                <RippleButton 
                   className={styles.stepBtn}
                   onClick={() => navigate("/safety-functions")}
                 >
                   Go to Safety Functions
-                </button>
+                </RippleButton>
               </div>
               <div className={styles.step}>
                 <span className={styles.stepNumber}>3</span>
                 <span className={styles.stepText}>Add Components</span>
-                <button 
+                <RippleButton 
                   className={styles.stepBtn}
                   onClick={() => navigate("/components")}
                 >
                   Go to Components
-                </button>
+                </RippleButton>
               </div>
               <div className={styles.step}>
                 <span className={styles.stepNumber}>4</span>
                 <span className={styles.stepText}>Define Failure Modes</span>
-                <button 
+                <RippleButton 
                   className={styles.stepBtn}
                   onClick={() => navigate("/failure-modes")}
                 >
                   Go to Failure Modes
-                </button>
+                </RippleButton>
               </div>
               <div className={styles.step}>
                 <span className={styles.stepNumber}>5</span>
                 <span className={styles.stepText}>Run FMEDA Analysis</span>
-                <button 
+                <RippleButton 
                   className={styles.stepBtn}
                   onClick={() => navigate("/fmeda-analysis")}
                 >
                   Go to Analysis
-                </button>
+                </RippleButton>
               </div>
             </div>
           </div>
@@ -234,7 +240,8 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
       ) : (
         <div className={styles.welcomeSection}>
           <div className={styles.welcomeHeader}>
-            <h1>🔬 FMEDA Analysis Tool</h1>
+            <img src="/logo.png" alt="FMEDA Logo" className={styles.logoImg} />
+            <h1>FMEDA Analysis Tool</h1>
             <p>Professional Failure Mode Effects and Diagnostic Analysis</p>
           </div>
 
@@ -253,7 +260,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
                   className={styles.projectInput}
                   onKeyPress={(e) => e.key === 'Enter' && handleNewProject()}
                 />
-                <button 
+                <RippleButton 
                   className={styles.createBtn}
                   onClick={handleNewProject}
                   disabled={isCreating}
@@ -264,7 +271,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
                   <span>
                     {isCreating ? "Creating..." : "Create Project"}
                   </span>
-                </button>
+                </RippleButton>
               </div>
             </div>
 
@@ -272,7 +279,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
               <div className={styles.cardIcon}>📁</div>
               <h3>Load Project</h3>
               <p>Import an existing project from CSV file</p>
-              <button 
+              <RippleButton 
                 className={styles.loadBtn}
                 onClick={handleLoadProject}
                 disabled={isImporting}
@@ -283,7 +290,7 @@ export default function Home({ currentProject, setCurrentProject, clearProjectDa
                 <span>
                   {isImporting ? "Importing..." : "Choose CSV File"}
                 </span>
-              </button>
+              </RippleButton>
             </div>
           </div>
 

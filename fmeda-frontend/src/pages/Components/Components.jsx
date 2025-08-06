@@ -10,6 +10,8 @@ import {
   createFailureMode
 } from "../../api/fmedaApi";
 import styles from "./Components.module.css";
+import RippleButton from "../../components/RippleButton";
+import { showToast } from "../../App";
 
 // Component type suggestions for better UX
 const COMPONENT_TYPE_SUGGESTIONS = [
@@ -226,6 +228,7 @@ export default function Components({ currentProject }) {
     } catch (error) {
       console.error("Failed to load components:", error);
       setError("Failed to load components.");
+      showToast("error", "Failed to load components.");
     }
   };
 
@@ -282,17 +285,20 @@ export default function Components({ currentProject }) {
     
     if (!currentProject) {
       setError("No project selected. Please create or load a project first.");
+      showToast("error", "No project selected. Please create or load a project first.");
       return;
     }
 
     if (!form.comp_id.trim() || !form.type.trim() || !form.failure_rate) {
       setError("Component ID, Type, and Failure Rate are required.");
+      showToast("error", "Component ID, Type, and Failure Rate are required.");
       return;
     }
 
     const failureRate = parseFloat(form.failure_rate);
     if (isNaN(failureRate) || failureRate < 0) {
       setError("Failure Rate must be a valid positive number.");
+      showToast("error", "Failure Rate must be a valid positive number.");
       return;
     }
 
@@ -354,6 +360,7 @@ export default function Components({ currentProject }) {
             console.error("Error details:", error.response?.data);
             // Don't fail the component creation if auto-populate fails
             setError(`Component ${editingId ? 'updated' : 'created'} successfully, but auto-populate failed: ${error.response?.data?.detail || error.message}`);
+            showToast("error", `Component ${editingId ? 'updated' : 'created'} successfully, but auto-populate failed: ${error.response?.data?.detail || error.message}`);
           }
         }
       }
@@ -377,11 +384,13 @@ export default function Components({ currentProject }) {
           ? `✅ Component '${form.comp_id}' created successfully with ${selectedFailureModes.length} auto-populated failure modes!`
           : `✅ Component '${form.comp_id}' created successfully!`);
       setSuccess(successMsg);
+      showToast("success", successMsg);
       setTimeout(() => setSuccess(""), 5000);
       
     } catch (err) {
       console.error(`Error ${editingId ? 'updating' : 'creating'} component:`, err);
       setError(`Failed to ${editingId ? 'update' : 'add'} component. Check your input and try again.`);
+      showToast("error", `Failed to ${editingId ? 'update' : 'add'} component. Check your input and try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -424,6 +433,7 @@ export default function Components({ currentProject }) {
       } catch (error) {
         console.error("Failed to import BOM:", error);
         setError("Failed to import BOM. Please check your CSV file format.");
+        showToast("error", "Failed to import BOM. Please check your CSV file format.");
       } finally {
         setIsImporting(false);
       }
@@ -455,10 +465,12 @@ export default function Components({ currentProject }) {
       await deleteComponent(componentId);
       await loadComponents();
       setSuccess("Component removed successfully!");
+      showToast("success", "Component removed successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       console.error("Failed to remove component:", error);
       setError("Failed to remove component. Please try again.");
+      showToast("error", "Failed to remove component. Please try again.");
     }
   };
 
@@ -687,7 +699,7 @@ export default function Components({ currentProject }) {
         </div>
 
         <div className={styles.formActions}>
-          <button 
+          <RippleButton 
             className={styles.saveBtn} 
             type="submit"
             disabled={isLoading}
@@ -698,10 +710,10 @@ export default function Components({ currentProject }) {
             <span>
               {isLoading ? "Adding..." : (editingId ? "Update Component" : "Add Component")}
             </span>
-          </button>
+          </RippleButton>
           
           {editingId && (
-            <button
+            <RippleButton
               type="button"
               className={styles.cancelBtn}
               onClick={() => {
@@ -717,7 +729,7 @@ export default function Components({ currentProject }) {
             >
               <span className={styles.btnIcon}>❌</span>
               <span>Cancel</span>
-            </button>
+            </RippleButton>
           )}
         </div>
       </form>
@@ -729,14 +741,14 @@ export default function Components({ currentProject }) {
         <div className={styles.tableHeader}>
           <h3>Components ({components.length})</h3>
           {components.length > 0 && (
-            <button 
+            <RippleButton 
               className={styles.continueBtn} 
               onClick={handleContinue}
             >
               <span className={styles.btnIcon}>🚀</span>
               <span>Continue to Failure Modes</span>
               <span className={styles.btnArrow}>→</span>
-            </button>
+            </RippleButton>
           )}
         </div>
 
@@ -774,22 +786,22 @@ export default function Components({ currentProject }) {
                       : "-"}
                   </td>
                   <td className={styles.actions}>
-                    <button className={styles.editBtn} title="Edit Component" onClick={() => handleEdit(comp)}>
+                    <RippleButton className={styles.editBtn} title="Edit Component" onClick={() => handleEdit(comp)}>
                       <span className={styles.btnIcon}>✏️</span>
                       <span>Edit</span>
-                    </button>
-                    <button className={styles.removeBtn} title="Remove Component" onClick={() => handleRemove(comp.id)}>
+                    </RippleButton>
+                    <RippleButton className={styles.removeBtn} title="Remove Component" onClick={() => handleRemove(comp.id)}>
                       <span className={styles.btnIcon}>🗑️</span>
                       <span>Remove</span>
-                    </button>
-                    <button 
+                    </RippleButton>
+                    <RippleButton 
                       className={styles.fmBtn} 
                       title="Component Failure Modes"
                       onClick={() => handleFailureModes(comp.id)}
                     >
                       <span className={styles.btnIcon}>🔧</span>
                       <span>Failure Modes</span>
-                    </button>
+                    </RippleButton>
                   </td>
                 </tr>
               ))}
@@ -799,7 +811,7 @@ export default function Components({ currentProject }) {
       </div>
 
       <div className={styles.importSection}>
-        <button 
+        <RippleButton 
           className={styles.importBtn}
           onClick={handleImportBOM}
           disabled={isImporting}
@@ -810,7 +822,7 @@ export default function Components({ currentProject }) {
           <span>
             {isImporting ? "Importing..." : "Import BOM"}
           </span>
-        </button>
+        </RippleButton>
       </div>
     </div>
   );
