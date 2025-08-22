@@ -35,7 +35,7 @@ export default function Results({ currentProject }) {
   const [results, setResults] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedSF, setSelectedSF] = useState(null);
+  // UI selection state not used currently
   const [isExporting, setIsExporting] = useState(false);
   const navigate = useNavigate();
 
@@ -197,8 +197,8 @@ export default function Results({ currentProject }) {
                 <div className={styles.cardIcon}>📊</div>
                 <div className={styles.cardContent}>
                   <h4>Metrics Calculated</h4>
-                  <p className={styles.cardValue}>6</p>
-                  <p className={styles.cardDescription}>SPFM, LFM, MPHF, RF, MPFL, MPFD</p>
+                  <p className={styles.cardValue}>7</p>
+                  <p className={styles.cardDescription}>SPFM, LFM, MPHF, RF, MPFL, MPFD, Safety Related</p>
                 </div>
               </div>
             </div>
@@ -315,6 +315,18 @@ export default function Results({ currentProject }) {
                         </div>
                         <p className={styles.metricDescription}>
                           Multiple Point Fault Detected
+                        </p>
+                      </div>
+
+                      <div className={styles.metricItem}>
+                        <div className={styles.metricHeader}>
+                          <span className={styles.metricLabel}>Safety Related</span>
+                        </div>
+                        <div className={styles.metricValue}>
+                          {formatSmallNumber(sfResults.safetyrelated)} FIT
+                        </div>
+                        <p className={styles.metricDescription}>
+                          Sum of safety related component failure rates
                         </p>
                       </div>
                     </div>

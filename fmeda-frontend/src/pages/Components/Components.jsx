@@ -6,7 +6,6 @@ import {
   updateComponent, 
   deleteComponent,
   getSafetyFunctions,
-  importProject,
   createFailureMode
 } from "../../api/fmedaApi";
 import styles from "./Components.module.css";
@@ -174,11 +173,9 @@ export default function Components({ currentProject }) {
     is_safety_related: false,
     related_sfs: [],
   });
-  const [isCreating, setIsCreating] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+  // removed Import BOM feature
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedFailureModes, setSelectedFailureModes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -190,6 +187,7 @@ export default function Components({ currentProject }) {
       loadComponents();
       loadSafetyFunctions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProject]);
 
   // Get predefined failure modes for selected component type
@@ -377,7 +375,6 @@ export default function Components({ currentProject }) {
       await loadComponents();
       
       // Show success message
-      const action = editingId ? 'updated' : 'created';
       const successMsg = editingId 
         ? `✅ Component '${form.comp_id}' updated successfully!`
         : (selectedFailureModes.length > 0 
@@ -404,45 +401,7 @@ export default function Components({ currentProject }) {
     navigate(`/failure-modes/${componentId}`);
   };
 
-  const handleImportBOM = () => {
-    // Create a file input element
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.csv';
-    fileInput.style.display = 'none';
-    
-    fileInput.onchange = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      try {
-        setIsImporting(true);
-        setError("");
-
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // For now, we'll use the same import endpoint
-        // In the future, we can create a specific BOM import endpoint
-        await importProject(formData);
-        
-        // Reload components
-        loadComponents();
-        
-        alert("BOM imported successfully!");
-      } catch (error) {
-        console.error("Failed to import BOM:", error);
-        setError("Failed to import BOM. Please check your CSV file format.");
-        showToast("error", "Failed to import BOM. Please check your CSV file format.");
-      } finally {
-        setIsImporting(false);
-      }
-    };
-
-    document.body.appendChild(fileInput);
-    fileInput.click();
-    document.body.removeChild(fileInput);
-  };
+  // Import BOM removed
 
   const handleEdit = (component) => {
     setForm({
@@ -810,20 +769,7 @@ export default function Components({ currentProject }) {
         )}
       </div>
 
-      <div className={styles.importSection}>
-        <RippleButton 
-          className={styles.importBtn}
-          onClick={handleImportBOM}
-          disabled={isImporting}
-        >
-          <span className={styles.btnIcon}>
-            {isImporting ? "⏳" : "📥"}
-          </span>
-          <span>
-            {isImporting ? "Importing..." : "Import BOM"}
-          </span>
-        </RippleButton>
-      </div>
+      {/* Import BOM removed as requested */}
     </div>
   );
 }

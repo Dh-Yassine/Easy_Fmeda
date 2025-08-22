@@ -122,6 +122,8 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* Reverted to stacked layout: form first, then table */
+
 .projectInfo {
   font-size: 1.1rem;
   color: rgba(255, 255, 255, 0.7);
@@ -567,6 +569,9 @@
   color: white;
   font-weight: 700;
   font-size: 1.05rem;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .table tr:nth-child(even) {
@@ -593,10 +598,22 @@
 }
 
 .systemEffect {
-  max-width: 150px;
+  max-width: 240px;
   word-wrap: break-word;
   color: rgba(255, 255, 255, 0.8);
   white-space: normal;
+}
+
+.systemEffectHeader {
+  width: 240px;
+}
+
+.safetyRelated {
+  min-width: 110px;
+}
+
+.properties {
+  min-width: 130px;
 }
 
 .spf, .mpf {
@@ -728,9 +745,8 @@
     font-size: 2rem;
   }
   
-  .formRow {
-    flex-direction: column;
-    gap: 1rem;
+  .contentGrid {
+    grid-template-columns: 1fr;
   }
 }
 

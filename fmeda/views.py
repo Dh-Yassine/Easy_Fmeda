@@ -150,7 +150,8 @@ class FMEDACalculateView(APIView):
                 'mphf': sf.MPHF,
                 'rf': sf.RF,
                 'mpfl': sf.MPFL,
-                'mpfd': sf.MPFD
+                'mpfd': sf.MPFD,
+                'safetyrelated': sf.safetyrelated
             }
             results.append(result)
             print(f"Result for {sf.sf_id}: SPFM={result['spfm']}, LFM={result['lfm']}, MPHF={result['mphf']}")
@@ -176,7 +177,8 @@ class ProjectResultsView(APIView):
                 'mphf': sf.MPHF,
                 'rf': sf.RF,
                 'mpfl': sf.MPFL,
-                'mpfd': sf.MPFD
+                'mpfd': sf.MPFD,
+                'safetyrelated': sf.safetyrelated
             })
         
         return Response(results, status=status.HTTP_200_OK)
@@ -337,7 +339,19 @@ class ProjectExportCSVView(APIView):
             rows = []
             rows.append({'section': 'project', 'name': project.name, 'lifetime': project.lifetime})
             for sf in project.safety_functions.all():
-                rows.append({'section': 'sf', 'id': sf.sf_id, 'description': sf.description, 'target_integrity_level': sf.target_integrity_level})
+                rows.append({
+                    'section': 'sf',
+                    'id': sf.sf_id,
+                    'description': sf.description,
+                    'target_integrity_level': sf.target_integrity_level,
+                    'RF': sf.RF,
+                    'MPFL': sf.MPFL,
+                    'MPFD': sf.MPFD,
+                    'MPHF': sf.MPHF,
+                    'SPFM': sf.SPFM,
+                    'LFM': sf.LFM,
+                    'safetyrelated': sf.safetyrelated
+                })
             for comp in project.components.all():
                 related_sf_ids = ','.join([sf.sf_id for sf in comp.related_sfs.all()])
                 rows.append({

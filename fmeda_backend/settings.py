@@ -26,13 +26,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',     # ✅ Required
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+
+# For local dev over LAN with session auth, optionally trust frontends
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+]
 
 DATABASES = {
     'default': {

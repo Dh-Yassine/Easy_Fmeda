@@ -14,9 +14,10 @@ export default function FailureModes({ currentProject }) {
   const [components, setComponents] = useState([]);
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [currentComponent, setCurrentComponent] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     description: "",
-    failure_rate_total: "",
+    failure_rate_percent: "",
     system_level_effect: "",
     is_SPF: false,
     is_MPF: false,
@@ -26,7 +27,7 @@ export default function FailureModes({ currentProject }) {
     MPF_diagnostic_coverage: "",
     component: null
   });
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export default function FailureModes({ currentProject }) {
         loadFailureModes(componentId);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProject, componentId]);
 
   const loadComponents = async () => {
@@ -82,7 +84,7 @@ export default function FailureModes({ currentProject }) {
     setSelectedComponent(compId);
     setForm(prev => ({ ...prev, component: compId }));
     
-    const selectedComp = components.find(c => c.id == compId);
+    const selectedComp = components.find(c => String(c.id) === String(compId));
     setCurrentComponent(selectedComp);
     
     if (compId) {
@@ -91,6 +93,8 @@ export default function FailureModes({ currentProject }) {
       setFailureModes([]);
       setCurrentComponent(null);
     }
+    setShowForm(false);
+    setEditingId(null);
   };
 
   const handleSubmit = async (e) => {
@@ -101,21 +105,17 @@ export default function FailureModes({ currentProject }) {
       return;
     }
 
-    if (!form.description.trim() || !form.failure_rate_total || !selectedComponent) {
-      setError("Description, Failure Rate, and Component are required.");
+    if (!form.description.trim() || !form.failure_rate_percent || !selectedComponent) {
+      setError("Description, FIT percentage, and Component are required.");
       return;
     }
 
-    const failureRate = parseFloat(form.failure_rate_total);
-    if (isNaN(failureRate) || failureRate < 0) {
-      setError("Failure Rate must be a valid positive number.");
+    const percent = parseFloat(form.failure_rate_percent);
+    if (isNaN(percent) || percent < 0) {
+      setError("FIT percentage must be a valid positive number.");
       return;
     }
 
-    if (!form.is_SPF && !form.is_MPF) {
-      setError("At least one failure type (SPF or MPF) must be selected.");
-      return;
-    }
 
     // Check for duplicate description
     const existingFM = failureModes.find(fm => 
@@ -131,16 +131,28 @@ export default function FailureModes({ currentProject }) {
     setError("");
 
     try {
+      const compFit = parseFloat(currentComponent?.failure_rate || 0) || 0;
       const failureModeData = {
-        ...form,
+        description: form.description.trim(),
+        system_level_effect: form.system_level_effect,
+        is_SPF: !!form.is_SPF,
+        is_MPF: !!form.is_MPF,
+        SPF_safety_mechanism: form.is_SPF ? (form.SPF_safety_mechanism || '') : '',
+        SPF_diagnostic_coverage: form.is_SPF && form.SPF_diagnostic_coverage !== ''
+          ? Number(form.SPF_diagnostic_coverage)
+          : 0,
+        MPF_safety_mechanism: form.is_MPF ? (form.MPF_safety_mechanism || '') : '',
+        MPF_diagnostic_coverage: form.is_MPF && form.MPF_diagnostic_coverage !== ''
+          ? Number(form.MPF_diagnostic_coverage)
+          : 0,
         component: selectedComponent,
-        Failure_rate_total: failureRate
+        Failure_rate_total: compFit * (percent / 100)
       };
 
       console.log("Creating failure mode with data:", failureModeData);
       console.log("Form state:", form);
       console.log("Selected component:", selectedComponent);
-      console.log("Failure rate:", failureRate);
+      console.log("FIT %:", percent, "Computed FIT:", failureModeData.Failure_rate_total);
 
       if (editingId) {
         await updateFailureMode(editingId, failureModeData);
@@ -151,7 +163,7 @@ export default function FailureModes({ currentProject }) {
       // Reset form
       setForm({
         description: "",
-        failure_rate_total: "",
+        failure_rate_percent: "",
         system_level_effect: "",
         is_SPF: false,
         is_MPF: false,
@@ -162,6 +174,7 @@ export default function FailureModes({ currentProject }) {
         component: selectedComponent
       });
       setEditingId(null);
+      setShowForm(false);
 
       // Reload failure modes
       await loadFailureModes(selectedComponent);
@@ -173,10 +186,16 @@ export default function FailureModes({ currentProject }) {
     }
   };
 
+  const compFitValue = parseFloat(currentComponent?.failure_rate || 0) || 0;
+  const fitPercentValue = parseFloat(form.failure_rate_percent || 0) || 0;
+  const computedFit = (compFitValue * (fitPercentValue / 100)).toFixed(2);
+
   const handleEdit = (failureMode) => {
+    const compFit = parseFloat(currentComponent?.failure_rate || 0) || 0;
+    const percent = compFit > 0 ? (failureMode.failure_rate_total / compFit) * 100 : 0;
     setForm({
       description: failureMode.description,
-      failure_rate_total: failureMode.failure_rate_total.toString(),
+      failure_rate_percent: percent ? percent.toFixed(2) : "",
       system_level_effect: failureMode.system_level_effect,
       is_SPF: failureMode.is_SPF,
       is_MPF: failureMode.is_MPF,
@@ -187,6 +206,7 @@ export default function FailureModes({ currentProject }) {
       component: failureMode.component
     });
     setEditingId(failureMode.id);
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -235,330 +255,352 @@ export default function FailureModes({ currentProject }) {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
-              <span className={styles.labelIcon}>🔧</span>
-              Select Component
-            </label>
-            <select
-              name="component"
-              value={selectedComponent || ""}
-              onChange={handleComponentChange}
-              className={styles.select}
-              required
-            >
-              <option value="">Select a component...</option>
-              {components.map((comp) => (
-                <option key={comp.id} value={comp.id}>
-                  {comp.comp_id} - {comp.type}
-                </option>
-              ))}
-            </select>
-            {currentComponent && (
-              <p className={styles.helpText}>
-                Selected: {currentComponent.comp_id} ({currentComponent.type}) - 
-                Failure Rate: {currentComponent.failure_rate} FIT
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className={styles.formSection}>
-          <div className={styles.sectionHeader}>
-            <h3>✏️ Manual Failure Mode Entry</h3>
-            <p>Add custom failure modes manually</p>
-          </div>
-
-          {selectedComponent && (
-            <>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>📝</span>
-                    Failure Mode Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    placeholder="Describe the failure mode..."
-                    className={styles.textarea}
-                    rows="3"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>📊</span>
-                    Failure Rate (FIT)
-                  </label>
-                  <input
-                    name="failure_rate_total"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.failure_rate_total}
-                    onChange={handleChange}
-                    placeholder="e.g., 100, 250.5"
-                    className={styles.input}
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    <span className={styles.labelIcon}>⚡</span>
-                    System Level Effect
-                  </label>
-                  <input
-                    name="system_level_effect"
-                    type="text"
-                    value={form.system_level_effect}
-                    onChange={handleChange}
-                    placeholder="e.g., Loss of function, Degraded performance"
-                    className={styles.input}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      name="is_SPF"
-                      type="checkbox"
-                      checked={form.is_SPF}
-                      onChange={handleChange}
-                      className={styles.checkbox}
-                    />
-                    <span className={styles.checkboxText}>
-                      <span className={styles.checkboxIcon}>🚨</span>
-                      Single Point Failure (SPF)
-                    </span>
-                  </label>
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      name="is_MPF"
-                      type="checkbox"
-                      checked={form.is_MPF}
-                      onChange={handleChange}
-                      className={styles.checkbox}
-                    />
-                    <span className={styles.checkboxText}>
-                      <span className={styles.checkboxIcon}>⚠️</span>
-                      Multiple Point Failure (MPF)
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {form.is_SPF && (
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      <span className={styles.labelIcon}>🛡️</span>
-                      SPF Safety Mechanism
-                    </label>
-                    <input
-                      name="SPF_safety_mechanism"
-                      type="text"
-                      value={form.SPF_safety_mechanism}
-                      onChange={handleChange}
-                      placeholder="Describe the SPF safety mechanism..."
-                      className={styles.input}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      <span className={styles.labelIcon}>📈</span>
-                      SPF Diagnostic Coverage (%)
-                    </label>
-                    <input
-                      name="SPF_diagnostic_coverage"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={form.SPF_diagnostic_coverage}
-                      onChange={handleChange}
-                      placeholder="0-100"
-                      className={styles.input}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {form.is_MPF && (
-                <div className={styles.formRow}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      <span className={styles.labelIcon}>🛡️</span>
-                      MPF Safety Mechanism
-                    </label>
-                    <input
-                      name="MPF_safety_mechanism"
-                      type="text"
-                      value={form.MPF_safety_mechanism}
-                      onChange={handleChange}
-                      placeholder="Describe the MPF safety mechanism..."
-                      className={styles.input}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      <span className={styles.labelIcon}>📈</span>
-                      MPF Diagnostic Coverage (%)
-                    </label>
-                    <input
-                      name="MPF_diagnostic_coverage"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={form.MPF_diagnostic_coverage}
-                      onChange={handleChange}
-                      placeholder="0-100"
-                      className={styles.input}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className={styles.formActions}>
-                <button 
-                  className={styles.saveBtn} 
-                  type="submit"
-                  disabled={isLoading}
-                >
-                  <span className={styles.btnIcon}>
-                    {isLoading ? "⏳" : (editingId ? "✏️" : "➕")}
-                  </span>
-                  <span>
-                    {isLoading ? "Saving..." : (editingId ? "Update Failure Mode" : "Add Failure Mode")}
-                  </span>
-                </button>
-                
-                {editingId && (
-                  <button
-                    type="button"
-                    className={styles.cancelBtn}
-                    onClick={() => {
-                      setForm({
-                        description: "",
-                        failure_rate_total: "",
-                        system_level_effect: "",
-                        is_SPF: false,
-                        is_MPF: false,
-                        SPF_safety_mechanism: "",
-                        SPF_diagnostic_coverage: "",
-                        MPF_safety_mechanism: "",
-                        MPF_diagnostic_coverage: "",
-                        component: selectedComponent
-                      });
-                      setEditingId(null);
-                    }}
-                  >
-                    <span className={styles.btnIcon}>❌</span>
-                    <span>Cancel</span>
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </form>
-
-      {error && <div className={styles.error}>{error}</div>}
-
-      {selectedComponent && (
-        <div className={styles.tableSection}>
-          <div className={styles.tableHeader}>
-            <h3>Failure Modes for {currentComponent?.comp_id} ({failureModes.length})</h3>
-            {failureModes.length > 0 && (
-              <button 
-                className={styles.continueBtn} 
-                onClick={handleContinue}
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                <span className={styles.labelIcon}>🔧</span>
+                Select Component
+              </label>
+              <select
+                name="component"
+                value={selectedComponent || ""}
+                onChange={handleComponentChange}
+                className={styles.select}
+                required
               >
-                <span className={styles.btnIcon}>🚀</span>
-                <span>Continue to FMEDA Analysis</span>
-                <span className={styles.btnArrow}>→</span>
-              </button>
-            )}
+                <option value="">Select a component...</option>
+                {components.map((comp) => (
+                  <option key={comp.id} value={comp.id}>
+                    {comp.comp_id} - {comp.type}
+                  </option>
+                ))}
+              </select>
+              {currentComponent && (
+                <p className={styles.helpText}>
+                  Selected: {currentComponent.comp_id} ({currentComponent.type}) - 
+                  Failure Rate: {currentComponent.failure_rate} FIT
+                </p>
+              )}
+            </div>
           </div>
 
-          {failureModes.length === 0 ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>🔧</div>
-              <h4>No Failure Modes Defined</h4>
-              <p>Add failure modes for this component above to continue with your FMEDA analysis.</p>
-              <p>Failure modes describe how components can fail and their safety mechanisms.</p>
+          <div className={styles.formSection}>
+            <div className={styles.sectionHeader}>
+              <h3>{editingId ? "✏️ Edit Failure Mode" : "➕ Add Failure Mode"}</h3>
+              <p>{editingId ? "Update the selected failure mode" : "Add a new failure mode for the selected component"}</p>
             </div>
-          ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th>FIT Rate</th>
-                  <th>System Effect</th>
-                  <th>SPF</th>
-                  <th>SPF Mechanism</th>
-                  <th>SPF DC%</th>
-                  <th>MPF</th>
-                  <th>MPF Mechanism</th>
-                  <th>MPF DC%</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {failureModes.map((fm) => (
-                  <tr key={fm.id}>
-                    <td className={styles.description}>{fm.description}</td>
-                    <td className={styles.failureRate}>{fm.failure_rate_total}</td>
-                    <td className={styles.systemEffect}>{fm.system_level_effect}</td>
-                    <td className={styles.spf}>
-                      {fm.is_SPF ? "✅ Yes" : "❌ No"}
-                    </td>
-                    <td className={styles.spfMechanism}>{fm.SPF_safety_mechanism || "-"}</td>
-                    <td className={styles.spfDc}>
-                      {fm.is_SPF ? `${fm.SPF_diagnostic_coverage}%` : "N/A"}
-                    </td>
-                    <td className={styles.mpf}>
-                      {fm.is_MPF ? "✅ Yes" : "❌ No"}
-                    </td>
-                    <td className={styles.mpfMechanism}>{fm.MPF_safety_mechanism || "-"}</td>
-                    <td className={styles.mpfDc}>
-                      {fm.is_MPF ? `${fm.MPF_diagnostic_coverage}%` : "N/A"}
-                    </td>
-                    <td className={styles.actions}>
-                      <button 
-                        className={styles.editBtn} 
-                        onClick={() => handleEdit(fm)}
-                        title="Edit Failure Mode"
-                      >
-                        <span className={styles.btnIcon}>✏️</span>
-                        <span>Edit</span>
-                      </button>
-                      <button 
-                        className={styles.deleteBtn} 
-                        onClick={() => handleDelete(fm.id)}
-                        title="Delete Failure Mode"
-                      >
-                        <span className={styles.btnIcon}>🗑️</span>
-                        <span>Delete</span>
-                      </button>
-                    </td>
+
+            {selectedComponent && !showForm && !editingId && (
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  className={styles.saveBtn}
+                  onClick={() => setShowForm(true)}
+                >
+                  <span className={styles.btnIcon}>➕</span>
+                  <span>Add Failure Mode</span>
+                </button>
+              </div>
+            )}
+
+            {selectedComponent && (showForm || editingId) && (
+              <>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                      <span className={styles.labelIcon}>📝</span>
+                      Failure Mode Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      placeholder="Describe the failure mode..."
+                      className={styles.textarea}
+                      rows="3"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                      <span className={styles.labelIcon}>📊</span>
+                      FIT Percentage (%)
+                    </label>
+                    <input
+                      name="failure_rate_percent"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={form.failure_rate_percent}
+                      onChange={handleChange}
+                      placeholder="e.g., 10, 25.5"
+                      className={styles.input}
+                      required
+                    />
+                    {selectedComponent && (
+                      <p className={styles.helpText}>
+                        Component FIT: {compFitValue} → Computed FM FIT: <strong>{computedFit} FIT</strong>
+                      </p>
+                    )}
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                      <span className={styles.labelIcon}>⚡</span>
+                      System Level Effect
+                    </label>
+                    <input
+                      name="system_level_effect"
+                      type="text"
+                      value={form.system_level_effect}
+                      onChange={handleChange}
+                      placeholder="e.g., Loss of function, Degraded performance"
+                      className={styles.input}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        name="is_SPF"
+                        type="checkbox"
+                        checked={form.is_SPF}
+                        onChange={handleChange}
+                        className={styles.checkbox}
+                      />
+                      <span className={styles.checkboxText}>
+                        <span className={styles.checkboxIcon}>🚨</span>
+                        Single Point Failure (SPF)
+                      </span>
+                    </label>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        name="is_MPF"
+                        type="checkbox"
+                        checked={form.is_MPF}
+                        onChange={handleChange}
+                        className={styles.checkbox}
+                      />
+                      <span className={styles.checkboxText}>
+                        <span className={styles.checkboxIcon}>⚠️</span>
+                        Multiple Point Failure (MPF)
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {form.is_SPF && (
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>
+                        <span className={styles.labelIcon}>🛡️</span>
+                        SPF Safety Mechanism
+                      </label>
+                      <input
+                        name="SPF_safety_mechanism"
+                        type="text"
+                        value={form.SPF_safety_mechanism}
+                        onChange={handleChange}
+                        placeholder="Describe the SPF safety mechanism..."
+                        className={styles.input}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>
+                        <span className={styles.labelIcon}>📈</span>
+                        SPF Diagnostic Coverage (%)
+                      </label>
+                      <input
+                        name="SPF_diagnostic_coverage"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={form.SPF_diagnostic_coverage}
+                        onChange={handleChange}
+                        placeholder="0-100"
+                        className={styles.input}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {form.is_MPF && (
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>
+                        <span className={styles.labelIcon}>🛡️</span>
+                        MPF Safety Mechanism
+                      </label>
+                      <input
+                        name="MPF_safety_mechanism"
+                        type="text"
+                        value={form.MPF_safety_mechanism}
+                        onChange={handleChange}
+                        placeholder="Describe the MPF safety mechanism..."
+                        className={styles.input}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>
+                        <span className={styles.labelIcon}>📈</span>
+                        MPF Diagnostic Coverage (%)
+                      </label>
+                      <input
+                        name="MPF_diagnostic_coverage"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={form.MPF_diagnostic_coverage}
+                        onChange={handleChange}
+                        placeholder="0-100"
+                        className={styles.input}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className={styles.formActions}>
+                  <button 
+                    className={styles.saveBtn} 
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    <span className={styles.btnIcon}>
+                      {isLoading ? "⏳" : (editingId ? "✏️" : "➕")}
+                    </span>
+                    <span>
+                      {isLoading ? "Saving..." : (editingId ? "Update Failure Mode" : "Add Failure Mode")}
+                    </span>
+                  </button>
+                  
+                  {(editingId || showForm) && (
+                    <button
+                      type="button"
+                      className={styles.cancelBtn}
+                      onClick={() => {
+                        setForm({
+                          description: "",
+                          failure_rate_percent: "",
+                          system_level_effect: "",
+                          is_SPF: false,
+                          is_MPF: false,
+                          SPF_safety_mechanism: "",
+                          SPF_diagnostic_coverage: "",
+                          MPF_safety_mechanism: "",
+                          MPF_diagnostic_coverage: "",
+                          component: selectedComponent
+                        });
+                        setEditingId(null);
+                        setShowForm(false);
+                      }}
+                    >
+                      <span className={styles.btnIcon}>❌</span>
+                      <span>Cancel</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </form>
+
+        {selectedComponent && (
+          <div className={styles.tableSection}>
+            <div className={styles.tableHeader}>
+              <h3>Failure Modes for {currentComponent?.comp_id} ({failureModes.length})</h3>
+              {failureModes.length > 0 && (
+                <button 
+                  className={styles.continueBtn} 
+                  onClick={handleContinue}
+                >
+                  <span className={styles.btnIcon}>🚀</span>
+                  <span>Continue to FMEDA Analysis</span>
+                  <span className={styles.btnArrow}>→</span>
+                </button>
+              )}
+            </div>
+
+            {failureModes.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>🔧</div>
+                <h4>No Failure Modes Defined</h4>
+                <p>Click "Add Failure Mode" to create your first failure mode.</p>
+                <p>Failure modes describe how components can fail and their safety mechanisms.</p>
+              </div>
+            ) : (
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>FIT Rate</th>
+                    <th className={styles.systemEffectHeader}>System Effect</th>
+                    <th>Safety Related</th>
+                    <th>SPF</th>
+                    <th>SPF Mechanism</th>
+                    <th>SPF DC%</th>
+                    <th>MPF</th>
+                    <th>MPF Mechanism</th>
+                    <th>MPF DC%</th>
+                    <th>Properties</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+                </thead>
+                <tbody>
+                  {failureModes.map((fm) => (
+                    <tr key={fm.id}>
+                      <td className={styles.description}>{fm.description}</td>
+                      <td className={styles.failureRate}>{fm.failure_rate_total}</td>
+                      <td className={styles.systemEffect}>{fm.system_level_effect}</td>
+                      <td className={styles.safetyRelated}>{currentComponent?.is_safety_related ? "✅ Yes" : "❌ No"}</td>
+                      <td className={styles.spf}>
+                        {fm.is_SPF ? "✅ Yes" : "❌ No"}
+                      </td>
+                      <td className={styles.spfMechanism}>{fm.SPF_safety_mechanism || "-"}</td>
+                      <td className={styles.spfDc}>
+                        {fm.is_SPF ? `${fm.SPF_diagnostic_coverage}%` : "N/A"}
+                      </td>
+                      <td className={styles.mpf}>
+                        {fm.is_MPF ? "✅ Yes" : "❌ No"}
+                      </td>
+                      <td className={styles.mpfMechanism}>{fm.MPF_safety_mechanism || "-"}</td>
+                      <td className={styles.mpfDc}>
+                        {fm.is_MPF ? `${fm.MPF_diagnostic_coverage}%` : "N/A"}
+                      </td>
+                      <td className={styles.properties}>
+                        <button 
+                          className={styles.editBtn} 
+                          onClick={() => handleEdit(fm)}
+                          title="Edit Properties"
+                        >
+                          <span className={styles.btnIcon}>⚙️</span>
+                          <span>Properties</span>
+                        </button>
+                      </td>
+                      <td className={styles.actions}>
+                        <button 
+                          className={styles.deleteBtn} 
+                          onClick={() => handleDelete(fm.id)}
+                          title="Delete Failure Mode"
+                        >
+                          <span className={styles.btnIcon}>🗑️</span>
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
     </div>
   );
 } 
